@@ -169,9 +169,8 @@ public class LottoPredictor {
 		while (previouslyDrawn) {
 			int maxSimilarNumbers = 0;
 			int maxSimilarNumbersToPrevWeek = 0;
-			int lastDrawnWeek = winningNumbers.length - 1;
+			int lastDrawnWeek = 0;
 			int simToLastDrawn = 0;
-
 			// Check numbers for last drawn winning numbers
 			for (int numI = 0; numI < 7; numI++) {
 
