@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Scanner;
 
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -87,29 +88,68 @@ public class LottoPredictor {
 //			System.out.println("]");
 //		}
 		myExcelBook.close();
-		System.out.println("predicting next winning unique numbers...");
-		System.out.println("");
-		
-		predictNextUniqueNumbers(winningNumbers, 3);
-		System.out.println("");
-		
-		predictNextSimilairNumbers(winningNumbers, 1);
-		System.out.println("");
-		
-		predictNextSimilairNumbers(winningNumbers, 2);
-		System.out.println("");
 
-		System.out.println("Attempting to predict next winning unique numbers with less than 3 similarities...");
+		System.out.println("predicting possible 5 sequences...");
+		predictNextUniqueNumbers(winningNumbers, 3, 49, 1);
+		predictNextUniqueNumbers(winningNumbers, 3, 49, 1);
+		predictOffPreviousWinningNum(winningNumbers, 2, 49, 1);
+		predictOffPreviousWinningNum(winningNumbers, 2, 49, 1);
+		predictOffPreviousWinningNum(winningNumbers, 3, 49, 1);
 		System.out.println("");
-		
-		predictNextUniqueNumbers(winningNumbers, 2);
-		
+		final String uniqueNumbers = "U";
+		final String similairNumbers = "S";
+		final String highSequence = "H";
+		final String lowSequence = "L";
+		final String customSequence = "C";
+
+		Scanner scan = new Scanner(System.in);
+		System.out.println("");
+		String input = "";
+
+		while (!input.equalsIgnoreCase("quit")) {
+			System.out.println("________________________________________________________");
+			System.out.println("To predict unique numbers enter: " + uniqueNumbers);
+			System.out.println("To predict simlair numbers to previous draws enter: " + similairNumbers);
+			System.out.println("To predict low number sequence enter:  " + lowSequence);
+			System.out.println("To predict high number sequence enter:  " + highSequence);
+			System.out.println("To predict custom min to max number sequence enter:  " + customSequence);
+			System.out.println("To quit enter: quit");
+			input = scan.nextLine();
+			if (input.equalsIgnoreCase(uniqueNumbers)) {
+				System.out.println("Enter how many numbers you\'d like to be unique");
+				System.out.println("i.e a number out of 7, i.e a number from the list [1, 2, 3, 4]");
+				int number = Integer.parseInt(scan.nextLine());
+				System.out.println("Generating winning sequence with " + (7 - number)
+						+ " similair number('s) from all previous draws");
+				predictNextUniqueNumbers(winningNumbers, (7 - number), 49, 1);
+				System.out.println("");
+			} else if (input.equalsIgnoreCase(similairNumbers)) {
+				System.out.println("Enter how many numbers you\'d like to be similair to previous draw");
+				System.out.print("i.e a number from the list [1, 2, 3]");
+				int number = Integer.parseInt(scan.nextLine());
+				System.out.println("Generating winning sequence with " + number
+						+ " number('s) similair to previous winning draw:");
+				predictOffPreviousWinningNum(winningNumbers, number, 49, 1);
+				System.out.println("");
+			} else if (input.equalsIgnoreCase(lowSequence)) {
+				predictOffPreviousWinningNum(winningNumbers, 2, 24, 1);
+			} else if (input.equalsIgnoreCase(highSequence)) {
+				predictOffPreviousWinningNum(winningNumbers, 2, 25, 25);
+			} else if (input.equalsIgnoreCase(customSequence)) {
+				System.out.println("Enter min: ");
+				int min = Integer.parseInt(scan.nextLine());
+				System.out.println("Enter max: ");
+				int max = Integer.parseInt(scan.nextLine());
+				predictOffPreviousWinningNum(winningNumbers, 2, (max - min), min);
+			}
+		}
+
 	}
 
-	public static void predictNextUniqueNumbers(int winningNumbers[][], int similarities) {
+	public static void predictNextUniqueNumbers(int winningNumbers[][], int similarities, int high, int low) {
 		int[] newSequence = new int[7];
 
-		newSequence = generateNewSequence();
+		newSequence = generateNewSequence(high, low);
 
 		boolean previouslyDrawn = true;
 
@@ -142,7 +182,6 @@ public class LottoPredictor {
 
 			if (maxSimilarNumbers <= similarities) {
 				previouslyDrawn = false;
-				System.out.println("Sequence found has " + maxSimilarNumbers + " similarities to previous sequence: ");
 				System.out.print("\t[");
 				Arrays.sort(newSequence);
 				for (int i = 0; i < 7; i++) {
@@ -151,18 +190,20 @@ public class LottoPredictor {
 						System.out.print(", ");
 					}
 				}
-				System.out.println("]");
+				Random r = new Random();
+				System.out.println("] + [" + Math.round(r.nextFloat() * 49 + 1) + "]");
 			} else {
-				newSequence = generateNewSequence();
+				newSequence = generateNewSequence(high, low);
 			}
 		}
 
 	}
 
-	public static void predictNextSimilairNumbers(int winningNumbers[][], int simToPrevWeek) {
+//	
+	public static void predictOffPreviousWinningNum(int winningNumbers[][], int simToPrevWeek, int high, int low) {
 		int[] newSequence = new int[7];
 
-		newSequence = generateNewSequence();
+		newSequence = generateNewSequence(high, low);
 
 		boolean previouslyDrawn = true;
 
@@ -208,9 +249,6 @@ public class LottoPredictor {
 				}
 				if (maxSimilarNumbers <= 3) {
 					previouslyDrawn = false;
-//					5 17 19 25 31 38 46
-					System.out.println("Unique sequence with " + maxSimilarNumbersToPrevWeek
-							+ " similair numbers to last draw:");
 					System.out.print("\t[");
 					Arrays.sort(newSequence);
 					for (int i = 0; i < 7; i++) {
@@ -219,27 +257,28 @@ public class LottoPredictor {
 							System.out.print(", ");
 						}
 					}
-					System.out.println("]");
+					Random r = new Random();
+					System.out.println("] + [" + Math.round(r.nextFloat() * 49 + 1) + "]");
 				} else
-					newSequence = generateNewSequence();
+					newSequence = generateNewSequence(high, low);
 
 			} else
-				newSequence = generateNewSequence();
+				newSequence = generateNewSequence(high, low);
 
 		}
 
 	}
 
-	static int[] generateNewSequence() {
-		Random r = new Random(System.currentTimeMillis());
+	static int[] generateNewSequence(int high, int low) {
+		Random r = new Random();
 		int[] newSequence = new int[7];
 		ArrayList<Integer> randomNumber = new ArrayList<Integer>();
 
 		for (int i = 0; i < 7; i++) {
-			int randomDigit = Math.round(r.nextFloat() * 49 + 1);
+			int randomDigit = Math.round(r.nextFloat() * high + low);
 
 			while (randomNumber.contains(randomDigit)) {
-				randomDigit = Math.round(r.nextFloat() * 49 + 1);
+				randomDigit = Math.round(r.nextFloat() * high + low);
 			}
 
 			randomNumber.add(randomDigit);
